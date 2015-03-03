@@ -5,7 +5,6 @@ CTOP is a tool which allows you to quickly find out what's happening on a machin
 ## Screenshots:
 ![Ordered by read-latency](ordered-by-read-latency.png "Ordered by read-latency")
 ![Ordered by disk-space](ordered-by-diskspace.png "Ordered by disk-space")
-![](https://github.com/hailocab/ctop/blob/master/ordered-by-diskspace.png)
 
 ## How to use it:
 * Run the binary
