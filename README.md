@@ -1,10 +1,11 @@
-# CTOP ("Top for Cassanddra")
+# CTOP ("Top for Cassandra")
 
 CTOP is a tool which allows you to quickly find out what's happening on a machine running Cassandra. It is particularly useful on a cluster with multiple-tenants, multiple-applications, and large numbers of tables. If you suspect that the performance is not good, then you can use this to figure out which table is giving you trouble.
 
 ## Screenshots:
-![Ordered by read-latency](ordered-by-read-latency.png "Ordered by read-latency"
-![Ordered by disk-space](ordered-by-diskspace.png "Ordered by disk-space"
+![Ordered by read-latency](ordered-by-read-latency.png "Ordered by read-latency")
+![Ordered by disk-space](ordered-by-diskspace.png "Ordered by disk-space")
+![](https://github.com/hailocab/ctop/blob/master/ordered-by-diskspace.png)
 
 ## How to use it:
 * Run the binary
