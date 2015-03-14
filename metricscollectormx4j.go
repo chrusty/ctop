@@ -29,9 +29,9 @@ var (
 )
 
 // Checks the connection to MX4J:
-func checkConnection(cassandraIP string) error {
+func checkConnection(cassandraAddress string) error {
 	// Request the root URL:
-	URL := fmt.Sprintf("http://%s:%s/", cassandraHost, MX4JPort)
+	URL := fmt.Sprintf("http://%s:%s/", cassandraAddress, MX4JPort)
 
 	_, err := http.Get(URL)
 	return err
