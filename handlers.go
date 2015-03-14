@@ -2,15 +2,12 @@ package main
 
 import (
 	types "./types"
-	// "flag"
 	"fmt"
 	"github.com/nsf/termbox-go"
-	// "time"
-	// "os"
 )
 
 // Logging to a channel (from anywhere):
-func log_to_channel(severity string, message string) {
+func logToChannel(severity string, message string) {
 	// Make a new LogMessage struct:
 	logMessage := types.LogMessage{
 		Severity: severity,
@@ -27,14 +24,14 @@ func log_to_channel(severity string, message string) {
 }
 
 // Takes metrics off the channel and adds them up:
-func handle_metrics() {
+func handleMetrics() {
 
 	var cfStats types.CFStats
 
 	for {
 		// Get a metric from the channel:
 		cfMetric := <-metricsChannel
-		log_to_channel("debug", fmt.Sprintf("Received a metric! %s", cfMetric.MetricName))
+		logToChannel("debug", fmt.Sprintf("Received a metric! %s", cfMetric.MetricName))
 
 		// Build the key:
 		statName := cfMetric.KeySpace + ":" + cfMetric.ColumnFamily
@@ -45,11 +42,11 @@ func handle_metrics() {
 		// See if we already have a stats-entry:
 		if _, ok := stats[statName]; ok {
 			// Use the existing stats-entry:
-			log_to_channel("debug", fmt.Sprintf("Updating existing stat (%s)", statName))
+			logToChannel("debug", fmt.Sprintf("Updating existing stat (%s)", statName))
 			cfStats = stats[statName]
 		} else {
 			// Add a new entry to the map:
-			log_to_channel("debug", fmt.Sprintf("Adding new stat (%s)", statName))
+			logToChannel("debug", fmt.Sprintf("Adding new stat (%s)", statName))
 			cfStats = types.CFStats{
 				ReadCount:    0,
 				ReadCountTS:  0,
@@ -116,6 +113,6 @@ func handle_metrics() {
 }
 
 // Returns the key-code:
-func handle_keypress(ev *termbox.Event) {
-	log_to_channel("debug", fmt.Sprintf("Key pressed: %s", ev.Ch))
+func handleKeypress(ev *termbox.Event) {
+	logToChannel("debug", fmt.Sprintf("Key pressed: %s", ev.Ch))
 }

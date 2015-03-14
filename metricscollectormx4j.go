@@ -16,12 +16,20 @@ const (
 )
 
 var (
-	// cfMetrics = []string{"ReadCount", "WriteCount", "LiveDiskSpaceUsed", "MeanRowSize", "MaxRowSize"}
+	// Define a list of metrics to collect (sticking to 5 important ones to save on HTTP calls):
 	cfMetrics = []string{"ReadCount", "WriteCount", "LiveDiskSpaceUsed", "RecentReadLatencyMicros", "RecentWriteLatencyMicros"}
+
+	// "ReadCount"                - The number of reads to a CF
+	// "WriteCount"               - The number of writes to a CF
+	// "LiveDiskSpaceUsed"        - Disk space used
+	// "MeanRowSize"              - Mean row-size
+	// "MaxRowSize"               - Max row-size
+	// "RecentReadLatencyMicros"  - Read latency
+	// "RecentWriteLatencyMicros" - Write latency
 )
 
 // Checks the connection to MX4J:
-func check_connection(cassandraIP string) error {
+func checkConnection(cassandraIP string) error {
 	// Request the root URL:
 	URL := fmt.Sprintf("http://%s:%s/", cassandraHost, MX4JPort)
 
@@ -32,7 +40,7 @@ func check_connection(cassandraIP string) error {
 // Return a list of keySpaces and columnFamilies from MX4J:
 func getCluster(cassandraIP string) (types.Cluster, error) {
 
-	log_to_channel("info", fmt.Sprintf("Getting list of KeySpaces and ColumnFamilies from (%s:%s)", cassandraIP, MX4JPort))
+	logToChannel("info", fmt.Sprintf("Getting list of KeySpaces and ColumnFamilies from (%s:%s)", cassandraIP, MX4JPort))
 
 	// Create a new MX4JCFList{} to unmarshal the XML into:
 	columnFamilyList := types.MX4JCFList{}
@@ -43,23 +51,23 @@ func getCluster(cassandraIP string) (types.Cluster, error) {
 	// Request the data from MX4J:
 	httpResponse, err := http.Get(URL)
 	if err != nil {
-		log_to_channel("error", fmt.Sprintf("Trouble talking to MX4J (%s)\n%s", URL, err))
+		logToChannel("error", fmt.Sprintf("Trouble talking to MX4J (%s)\n%s", URL, err))
 	} else {
-		log_to_channel("debug", fmt.Sprintf("Got HTTP response code (%d)", httpResponse.StatusCode))
+		logToChannel("debug", fmt.Sprintf("Got HTTP response code (%d)", httpResponse.StatusCode))
 	}
 
 	// Read the response:
 	xmlResponse, err := ioutil.ReadAll(httpResponse.Body)
 	if err != nil {
-		log_to_channel("error", fmt.Sprintf("Couldn't get response body!\n%s", err))
+		logToChannel("error", fmt.Sprintf("Couldn't get response body!\n%s", err))
 	}
 
 	// UnMarshal the XML response:
 	err = xml.Unmarshal([]byte(xmlResponse), &columnFamilyList)
 	if err != nil {
-		log_to_channel("error", fmt.Sprintf("Couldn't unmarshal the response!\n%s", err))
+		logToChannel("error", fmt.Sprintf("Couldn't unmarshal the response!\n%s", err))
 	} else {
-		log_to_channel("debug", fmt.Sprintf("Got a ColumnFamily list - great success!"))
+		logToChannel("debug", fmt.Sprintf("Got a ColumnFamily list - great success!"))
 		//log.Debugf("- %s", columnFamilyList)
 	}
 
@@ -94,7 +102,7 @@ func getCluster(cassandraIP string) (types.Cluster, error) {
 
 		// Create a new ColumnFamily{}:
 		if columnFamilyType[1] == "ColumnFamilies" {
-			log_to_channel("debug", fmt.Sprintf("Found KS:CF - %s:%s (%s)", keySpaceName[1], columnFamilyName[1], columnFamilyType[1]))
+			logToChannel("debug", fmt.Sprintf("Found KS:CF - %s:%s (%s)", keySpaceName[1], columnFamilyName[1], columnFamilyType[1]))
 			cluster.KeySpaces[keySpaceName[1]].ColumnFamilies[columnFamilyName[1]] = types.ColumnFamily{}
 		}
 	}
@@ -105,7 +113,7 @@ func getCluster(cassandraIP string) (types.Cluster, error) {
 // Retreive metrics from MX4J:
 func getCFMetrics(cluster types.Cluster, cassandraIP string) (types.Cluster, error) {
 
-	log_to_channel("debug", fmt.Sprintf("Getting metrics from (%s:%s)", cassandraIP, MX4JPort))
+	logToChannel("debug", fmt.Sprintf("Getting metrics from (%s:%s)", cassandraIP, MX4JPort))
 
 	// Iterate through our Cluster{}:
 	for name, keySpace := range cluster.KeySpaces {
@@ -117,7 +125,7 @@ func getCFMetrics(cluster types.Cluster, cassandraIP string) (types.Cluster, err
 				// Create a new MX4JCassandraCFLongData{} to unmarshal the XML into:
 				metric := types.MX4JCassandraCFLongData{}
 
-				log_to_channel("info", fmt.Sprintf("Getting %s:%s:%s", name, columnFamily, cfMetrics[i]))
+				logToChannel("info", fmt.Sprintf("Getting %s:%s:%s", name, columnFamily, cfMetrics[i]))
 
 				// Build the reqest URL:
 				URL := fmt.Sprintf("http://%s:%s/getattribute?objectname=org.apache.cassandra.db:type=ColumnFamilies,keyspace=%s,columnfamily=%s&attribute=%s&format=long&template=identity", cassandraIP, MX4JPort, name, columnFamily, cfMetrics[i])
@@ -125,23 +133,23 @@ func getCFMetrics(cluster types.Cluster, cassandraIP string) (types.Cluster, err
 				// Request the data from MX4J:
 				httpResponse, err := http.Get(URL)
 				if err != nil {
-					log_to_channel("error", fmt.Sprintf("Trouble talking to MX4J (%s)\n%s", URL, err))
+					logToChannel("error", fmt.Sprintf("Trouble talking to MX4J (%s)\n%s", URL, err))
 				} else {
-					log_to_channel("debug", fmt.Sprintf("Got HTTP response code (%d)", httpResponse.StatusCode))
+					logToChannel("debug", fmt.Sprintf("Got HTTP response code (%d)", httpResponse.StatusCode))
 				}
 
 				// Read the response:
 				xmlResponse, err := ioutil.ReadAll(httpResponse.Body)
 				if err != nil {
-					log_to_channel("error", fmt.Sprintf("Couldn't get response body!\n%s", err))
+					logToChannel("error", fmt.Sprintf("Couldn't get response body!\n%s", err))
 				}
 
 				// UnMarshal the XML response:
 				err = xml.Unmarshal([]byte(xmlResponse), &metric)
 				if err != nil {
-					log_to_channel("error", fmt.Sprintf("Couldn't unmarshal the response!\n%s", err))
+					logToChannel("error", fmt.Sprintf("Couldn't unmarshal the response!\n%s", err))
 				} else {
-					log_to_channel("debug", fmt.Sprintf("Got a metric - GREAT SUCCESS!"))
+					logToChannel("debug", fmt.Sprintf("Got a metric - GREAT SUCCESS!"))
 
 					// Make an int64:
 					metricIntValue, _ := strconv.ParseInt(metric.CFLongData.Value, 0, 64)
@@ -160,9 +168,9 @@ func getCFMetrics(cluster types.Cluster, cassandraIP string) (types.Cluster, err
 					// Put it in the metrics channel:
 					select {
 					case metricsChannel <- cfMetric:
-						log_to_channel("debug", fmt.Sprintf("Sent a metric."))
+						logToChannel("debug", fmt.Sprintf("Sent a metric."))
 					default:
-						log_to_channel("info", fmt.Sprintf("Couldn't send metric!"))
+						logToChannel("info", fmt.Sprintf("Couldn't send metric!"))
 					}
 				}
 			}
@@ -177,14 +185,14 @@ func MetricsCollector(cassandraHost string) {
 	// Get a list of cluster KeySpaces and ColumnFamilies from MX4J:
 	cluster, err := getCluster(cassandraHost)
 	if err != nil {
-		log_to_channel("error", fmt.Sprintf("Couldn't get cluster schema!\n%s", err))
+		logToChannel("error", fmt.Sprintf("Couldn't get cluster schema!\n%s", err))
 	}
 
 	for {
 		// Get metrics for each ColumnFamily from MX4J:
 		cluster, err = getCFMetrics(cluster, cassandraHost)
 		if err != nil {
-			log_to_channel("error", fmt.Sprintf("Couldn't get metrics!\n%s", err))
+			logToChannel("error", fmt.Sprintf("Couldn't get metrics!\n%s", err))
 		}
 		time.Sleep(5 * time.Second)
 	}

@@ -31,8 +31,7 @@ const (
 
 func init() {
 	// Default to localhost (MX4J needs to be configured to listen to this address in cassandra-env.sh though):
-	// hostName, _ := os.Hostname()
-	hostName := "127.0.0.1"
+	hostName, _ := os.Hostname()
 	flag.StringVar(&cassandraHost, "cassandraHost", hostName, "The address of the Cassandra host to run against")
 }
 
@@ -42,31 +41,40 @@ func main() {
 	// Set the vars from the command-line args:
 	flag.Parse()
 
-	err := check_connection(cassandraHost)
-	if err != nil {
-		fmt.Printf("Can't connect to stats-provider! (%s)\n", cassandraHost)
-		os.Exit(2)
+	// Check our connection to MX4J:
+	if checkConnection(cassandraHost) != nil {
+		fmt.Printf("Can't connect to stats-provider (%s)! Trying localhost before bailing...\n", cassandraHost)
+		if checkConnection("localhost") != nil {
+			fmt.Println("Can't even connect to localhost! Are you running C* with MX4J?")
+			os.Exit(2)
+		} else {
+			fmt.Println("Proceeding with localhost..")
+			cassandraHost = "localhost"
+		}
 	}
 
 	// Initialise "termbox" (console interface):
-	err = termbox.Init()
+	err := termbox.Init()
 	if err != nil {
 		panic(err)
 	}
 	defer termbox.Close()
 
+	// Get the initial window-size:
 	termWidth, termHeight = termbox.Size()
 
+	// Get the display running in the right mode:
 	termbox.SetInputMode(termbox.InputEsc | termbox.InputMouse)
 
+	// Render the initial "UI":
 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
-	draw_border(termWidth, termHeight)
+	drawBorder(termWidth, termHeight)
 	termbox.Flush()
 
 	// Run the metrics-collector:
 	go MetricsCollector(cassandraHost)
-	go handle_metrics()
-	go refresh_screen()
+	go handleMetrics()
+	go refreshScreen()
 
 loop:
 	for {
@@ -77,13 +85,13 @@ loop:
 			// Handle keypresses:
 			if ev.Ch == 113 {
 				// "q" (quit):
-				printf_tb(2, 1, messageForeGroundColour, termbox.ColorBlack, "Goodbye!: %s", ev.Ch)
+				printfTb(2, 1, messageForeGroundColour, termbox.ColorBlack, "Goodbye!: %s", ev.Ch)
 				break loop
-			} else if ev.Ch == 0 { // "Space"
-				show_stats()
+			} else if ev.Ch == 0 { // "Space-bar (refresh)"
+				showStats()
 			} else if ev.Ch == 109 { // "M"
 				dataDisplayed = "Metrics"
-				show_stats()
+				showStats()
 			} else if ev.Ch == 108 { // "L"
 				dataDisplayed = "Logs"
 			} else if ev.Ch == 49 { // "1"
@@ -98,10 +106,11 @@ loop:
 				dataSortedBy = "WriteLatency"
 			} else {
 				// Anything else:
-				handle_keypress(&ev)
+				handleKeypress(&ev)
 			}
 
-			draw_border(termWidth, termHeight)
+			// Redraw the display:
+			drawBorder(termWidth, termHeight)
 			termbox.Flush()
 
 		// Window is re-sized:
@@ -111,7 +120,7 @@ loop:
 			termHeight = ev.Height
 
 			// Redraw the screen:
-			draw_border(termWidth, termHeight)
+			drawBorder(termWidth, termHeight)
 			termbox.Flush()
 
 		// Error:

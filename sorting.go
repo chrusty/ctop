@@ -5,15 +5,18 @@ import (
 	"sort"
 )
 
+// Define a type for a sorted-map of columnfamily-stats:
 type sortedMap struct {
 	m map[string]types.CFStats
 	s []string
 }
 
+// Return the length of a sorted-map:
 func (sm *sortedMap) Len() int {
 	return len(sm.m)
 }
 
+// Handles the different attributes we might sort by:
 func (sm *sortedMap) Less(i, j int) bool {
 	if dataSortedBy == "Reads" {
 		return sm.m[sm.s[i]].ReadRate > sm.m[sm.s[j]].ReadRate
@@ -35,10 +38,12 @@ func (sm *sortedMap) Less(i, j int) bool {
 	}
 }
 
+// Replace two values in a list:
 func (sm *sortedMap) Swap(i, j int) {
 	sm.s[i], sm.s[j] = sm.s[j], sm.s[i]
 }
 
+// Return keys in order:
 func sortedKeys(m map[string]types.CFStats) []string {
 	sm := new(sortedMap)
 	sm.m = m
