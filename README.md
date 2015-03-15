@@ -7,11 +7,17 @@ CTOP is a tool which allows you to quickly find out what's happening on a machin
 ![Ordered by disk-space](docs/ordered-by-diskspace.png "Ordered by disk-space")
 ![Ordered by write-rate](docs/ordered-by-write-rate.png "Ordered by write-rate")
 
-## Installation:
+## Installation (deb):
 * Download a [DEB file](https://github.com/hailocab/ctop/releases/download/1.3/ctop_1.3_amd64.deb "CTOP 1.3") from the [releases](https://github.com/hailocab/ctop/releases "releases") section
 * Install mx4j "apt-get install libmx4j-java"
 * Install CTOP "dpkg -i ctop_1.3_amd64.deb"
 * Find out what's killing your Cassandra cluster
+
+## Installation (binary):
+* Download a binary (or compile one yourself)
+* Install mx4j jars in the java/cassandra classpath (![download from here](http://sourceforge.net/projects/mx4j/files/MX4J%20Binary/)
+* Re-start cassandra
+* Run CTOP
 
 ## How to use it:
 * Run the binary
