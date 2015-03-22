@@ -11,10 +11,6 @@ import (
 	"time"
 )
 
-const (
-	MX4JPort = "8081"
-)
-
 var (
 	// Define a list of metrics to collect (sticking to 5 important ones to save on HTTP calls):
 	cfMetrics = []string{"ReadCount", "WriteCount", "LiveDiskSpaceUsed", "RecentReadLatencyMicros", "RecentWriteLatencyMicros"}
@@ -29,24 +25,24 @@ var (
 )
 
 // Checks the connection to MX4J:
-func checkConnection(cassandraAddress string) error {
+func checkConnection(cassandraAddress string, cassandraPort string) error {
 	// Request the root URL:
-	URL := fmt.Sprintf("http://%s:%s/", cassandraAddress, MX4JPort)
+	URL := fmt.Sprintf("http://%s:%s/", cassandraAddress, cassandraPort)
 
 	_, err := http.Get(URL)
 	return err
 }
 
 // Return a list of keySpaces and columnFamilies from MX4J:
-func getCluster(cassandraIP string) (types.Cluster, error) {
+func getCluster(cassandraIP string, cassandraPort string) (types.Cluster, error) {
 
-	logToChannel("info", fmt.Sprintf("Getting list of KeySpaces and ColumnFamilies from (%s:%s)", cassandraIP, MX4JPort))
+	logToChannel("info", fmt.Sprintf("Getting list of KeySpaces and ColumnFamilies from (%s:%s)", cassandraIP, cassandraPort))
 
 	// Create a new MX4JCFList{} to unmarshal the XML into:
 	columnFamilyList := types.MX4JCFList{}
 
 	// Build the reqest URL:
-	URL := fmt.Sprintf("http://%s:%s/server?instanceof=org.apache.cassandra.db.ColumnFamilyStore&template=identity", cassandraIP, MX4JPort)
+	URL := fmt.Sprintf("http://%s:%s/server?instanceof=org.apache.cassandra.db.ColumnFamilyStore&template=identity", cassandraIP, cassandraPort)
 
 	// Request the data from MX4J:
 	httpResponse, err := http.Get(URL)
@@ -111,9 +107,9 @@ func getCluster(cassandraIP string) (types.Cluster, error) {
 }
 
 // Retreive metrics from MX4J:
-func getCFMetrics(cluster types.Cluster, cassandraIP string) (types.Cluster, error) {
+func getCFMetrics(cluster types.Cluster, cassandraIP string, cassandraPort string) (types.Cluster, error) {
 
-	logToChannel("debug", fmt.Sprintf("Getting metrics from (%s:%s)", cassandraIP, MX4JPort))
+	logToChannel("debug", fmt.Sprintf("Getting metrics from (%s:%s)", cassandraIP, cassandraPort))
 
 	// Iterate through our Cluster{}:
 	for name, keySpace := range cluster.KeySpaces {
@@ -128,7 +124,7 @@ func getCFMetrics(cluster types.Cluster, cassandraIP string) (types.Cluster, err
 				logToChannel("info", fmt.Sprintf("Getting %s:%s:%s", name, columnFamily, cfMetrics[i]))
 
 				// Build the reqest URL:
-				URL := fmt.Sprintf("http://%s:%s/getattribute?objectname=org.apache.cassandra.db:type=ColumnFamilies,keyspace=%s,columnfamily=%s&attribute=%s&format=long&template=identity", cassandraIP, MX4JPort, name, columnFamily, cfMetrics[i])
+				URL := fmt.Sprintf("http://%s:%s/getattribute?objectname=org.apache.cassandra.db:type=ColumnFamilies,keyspace=%s,columnfamily=%s&attribute=%s&format=long&template=identity", cassandraIP, cassandraPort, name, columnFamily, cfMetrics[i])
 
 				// Request the data from MX4J:
 				httpResponse, err := http.Get(URL)
@@ -183,14 +179,14 @@ func getCFMetrics(cluster types.Cluster, cassandraIP string) (types.Cluster, err
 func MetricsCollector(cassandraHost string) {
 
 	// Get a list of cluster KeySpaces and ColumnFamilies from MX4J:
-	cluster, err := getCluster(cassandraHost)
+	cluster, err := getCluster(cassandraHost, cassandraPort)
 	if err != nil {
 		logToChannel("error", fmt.Sprintf("Couldn't get cluster schema!\n%s", err))
 	}
 
 	for {
 		// Get metrics for each ColumnFamily from MX4J:
-		cluster, err = getCFMetrics(cluster, cassandraHost)
+		cluster, err = getCFMetrics(cluster, cassandraHost, cassandraPort)
 		if err != nil {
 			logToChannel("error", fmt.Sprintf("Couldn't get metrics!\n%s", err))
 		}

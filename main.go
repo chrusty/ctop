@@ -11,6 +11,7 @@ import (
 )
 
 var cassandraHost string
+var cassandraPort string
 
 // var messageChannel = make(chan types.LogMessage, 10)
 var metricsChannel = make(chan types.CFMetric, 100)
@@ -23,6 +24,9 @@ var termWidth = 80
 var termHeight = 25
 var refreshTime = 1 * time.Second
 
+var hostName, _ = os.Hostname()
+var portNumber = "8081"
+
 const (
 	defaultForeGroundColour = termbox.ColorWhite
 	defaultBackGroundColour = termbox.ColorBlack
@@ -31,8 +35,8 @@ const (
 
 func init() {
 	// Default to localhost (MX4J needs to be configured to listen to this address in cassandra-env.sh though):
-	hostName, _ := os.Hostname()
-	flag.StringVar(&cassandraHost, "cassandraHost", hostName, "The address of the Cassandra host to run against")
+	flag.StringVar(&cassandraHost, "host", hostName, "IP address of the Cassandra host to run against")
+	flag.StringVar(&cassandraPort, "port", portNumber, "TCP port of the Cassandra host")
 }
 
 // Do all the things:
@@ -42,9 +46,9 @@ func main() {
 	flag.Parse()
 
 	// Check our connection to MX4J:
-	if checkConnection(cassandraHost) != nil {
+	if checkConnection(cassandraHost, cassandraPort) != nil {
 		fmt.Printf("Can't connect to stats-provider (%s)! Trying localhost before bailing...\n", cassandraHost)
-		if checkConnection("localhost") != nil {
+		if checkConnection("localhost", cassandraPort) != nil {
 			fmt.Println("Can't even connect to localhost! Are you running C* with MX4J?")
 			os.Exit(2)
 		} else {
