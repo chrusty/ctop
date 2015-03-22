@@ -49,7 +49,7 @@ func main() {
 	if checkConnection(cassandraHost, cassandraPort) != nil {
 		fmt.Printf("Can't connect to stats-provider (%s)! Trying localhost before bailing...\n", cassandraHost)
 		if checkConnection("localhost", cassandraPort) != nil {
-			fmt.Println("Can't even connect to localhost! Are you running C* with MX4J?")
+			fmt.Println("Can't even connect to localhost! Check your destination host and port and try again.")
 			os.Exit(2)
 		} else {
 			fmt.Println("Proceeding with localhost..")
