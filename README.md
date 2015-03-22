@@ -15,7 +15,7 @@ CTOP is a tool which allows you to quickly find out what's happening on a machin
 
 ## Installation (binary):
 * Download a binary (or compile one yourself)
-* Install mx4j jars in the java/cassandra classpath (![download from here](http://sourceforge.net/projects/mx4j/files/MX4J%20Binary/)
+* Install mx4j jars in the java/cassandra classpath ([download from here](http://sourceforge.net/projects/mx4j/files/MX4J%20Binary/)
 * Re-start cassandra
 * Run CTOP
 
