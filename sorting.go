@@ -32,10 +32,9 @@ func (sm *sortedMap) Less(i, j int) bool {
 	}
 	if dataSortedBy == "WriteLatency" {
 		return sm.m[sm.s[i]].WriteLatency > sm.m[sm.s[j]].WriteLatency
-	} else {
-		// Default to "Reads":
-		return sm.m[sm.s[i]].ReadRate > sm.m[sm.s[j]].ReadRate
 	}
+	// Default to "Reads":
+	return sm.m[sm.s[i]].ReadRate > sm.m[sm.s[j]].ReadRate
 }
 
 // Replace two values in a list:
@@ -49,7 +48,7 @@ func sortedKeys(m map[string]types.CFStats) []string {
 	sm.m = m
 	sm.s = make([]string, len(m))
 	i := 0
-	for key, _ := range m {
+	for key := range m {
 		sm.s[i] = key
 		i++
 	}

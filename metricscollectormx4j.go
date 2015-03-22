@@ -176,6 +176,7 @@ func getCFMetrics(cluster types.Cluster, cassandraIP string, cassandraPort strin
 	return cluster, nil
 }
 
+// Collects actual metrics
 func MetricsCollector(cassandraHost string) {
 
 	// Get a list of cluster KeySpaces and ColumnFamilies from MX4J:
