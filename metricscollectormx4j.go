@@ -1,7 +1,7 @@
 package main
 
 import (
-	types "./types"
+	"github.com/hailocab/ctop/types"
 	"encoding/xml"
 	"fmt"
 	"io/ioutil"
