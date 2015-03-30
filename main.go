@@ -36,7 +36,7 @@ const (
 func init() {
 	// Default to localhost (MX4J needs to be configured to listen to this address in cassandra-env.sh though):
 	flag.StringVar(&cassandraHost, "host", hostName, "IP address of the Cassandra host to run against")
-	flag.StringVar(&cassandraPort, "port", portNumber, "TCP port of the Cassandra host")
+	flag.StringVar(&cassandraPort, "mx4j-port", portNumber, "TCP port of the Cassandra host")
 }
 
 // Do all the things:
