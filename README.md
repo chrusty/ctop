@@ -17,7 +17,7 @@ CTOP is a tool which allows you to quickly find out what's happening on a machin
 
 ## Installation (binary):
 * Download a binary (or compile one yourself)
-* Install mx4j jars in the java/cassandra classpath (![download from here](http://sourceforge.net/projects/mx4j/files/MX4J%20Binary/)
+* Install mx4j jars in the java/cassandra classpath ([download from here](http://sourceforge.net/projects/mx4j/files/MX4J%20Binary/))
 * Re-start cassandra
 * Run CTOP
 
@@ -35,7 +35,8 @@ CTOP is a tool which allows you to quickly find out what's happening on a machin
 * Metrics are for one node only (not cluster-wide)
 
 ## Notes
-* CTOP should run on anything, but I've only tested it on Ubuntu.
+* CTOP should run on anything. Originally was developed on Ubuntu, and
+  it's reported to run on CentOS and MacOS X.
 
 ## Pre-requisites:
 * CTOP uses "libmx4j-java" (an HTTP -> JMX) to retrieve JMX metrics from Cassandra (there was no easy way to query JMX directly), so this needs to be in the class-path where Cassandra can find it upon startup (with Ubuntu it is enough to do "apt-get install libmx4j-java", then to re-start Cassandra).
