@@ -1,7 +1,7 @@
 package main
 
 import (
-	types "./types"
+	"github.com/hailocab/ctop/types"
 	"fmt"
 	"github.com/nsf/termbox-go"
 )
