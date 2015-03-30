@@ -1,5 +1,7 @@
 # CTOP ("Top for Cassandra")
 
+[![Build Status](https://img.shields.io/travis/hailocab/ctop/master.svg "Build Status")](https://travis-ci.org/hailocab/ctop) 
+
 CTOP is a tool which allows you to quickly find out what's happening on a machine running Cassandra. It is particularly useful on a cluster with multiple-tenants, multiple-applications, and large numbers of tables. If you suspect that the performance is not good, then you can use this to figure out which table is giving you trouble.
 
 ## Screenshots:
