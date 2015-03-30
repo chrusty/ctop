@@ -25,24 +25,24 @@ var (
 )
 
 // Checks the connection to MX4J:
-func checkConnection(cassandraAddress string, cassandraPort string) error {
+func checkConnection(cassandraAddress string, cassandraMX4jPort string) error {
 	// Request the root URL:
-	URL := fmt.Sprintf("http://%s:%s/", cassandraAddress, cassandraPort)
+	URL := fmt.Sprintf("http://%s:%s/", cassandraAddress, cassandraMX4jPort)
 
 	_, err := http.Get(URL)
 	return err
 }
 
 // Return a list of keySpaces and columnFamilies from MX4J:
-func getCluster(cassandraIP string, cassandraPort string) (types.Cluster, error) {
+func getCluster(cassandraIP string, cassandraMX4jPort string) (types.Cluster, error) {
 
-	logToChannel("info", fmt.Sprintf("Getting list of KeySpaces and ColumnFamilies from (%s:%s)", cassandraIP, cassandraPort))
+	logToChannel("info", fmt.Sprintf("Getting list of KeySpaces and ColumnFamilies from (%s:%s)", cassandraIP, cassandraMX4jPort))
 
 	// Create a new MX4JCFList{} to unmarshal the XML into:
 	columnFamilyList := types.MX4JCFList{}
 
 	// Build the reqest URL:
-	URL := fmt.Sprintf("http://%s:%s/server?instanceof=org.apache.cassandra.db.ColumnFamilyStore&template=identity", cassandraIP, cassandraPort)
+	URL := fmt.Sprintf("http://%s:%s/server?instanceof=org.apache.cassandra.db.ColumnFamilyStore&template=identity", cassandraIP, cassandraMX4jPort)
 
 	// Request the data from MX4J:
 	httpResponse, err := http.Get(URL)
@@ -177,17 +177,17 @@ func getCFMetrics(cluster types.Cluster, cassandraIP string, cassandraPort strin
 }
 
 // Collects actual metrics
-func MetricsCollector(cassandraHost string) {
+func MetricsCollector() {
 
 	// Get a list of cluster KeySpaces and ColumnFamilies from MX4J:
-	cluster, err := getCluster(cassandraHost, cassandraPort)
+	cluster, err := getCluster(*cassandraHost, *cassandraMX4jPort)
 	if err != nil {
 		logToChannel("error", fmt.Sprintf("Couldn't get cluster schema!\n%s", err))
 	}
 
 	for {
 		// Get metrics for each ColumnFamily from MX4J:
-		cluster, err = getCFMetrics(cluster, cassandraHost, cassandraPort)
+		cluster, err = getCFMetrics(cluster, *cassandraHost, *cassandraMX4jPort)
 		if err != nil {
 			logToChannel("error", fmt.Sprintf("Couldn't get metrics!\n%s", err))
 		}

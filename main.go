@@ -10,10 +10,6 @@ import (
 	"time"
 )
 
-var cassandraHost string
-var cassandraPort string
-
-// var messageChannel = make(chan types.LogMessage, 10)
 var metricsChannel = make(chan types.CFMetric, 100)
 var messageChannel = make(chan types.LogMessage, 100)
 var stats = make(map[string]types.CFStats)
@@ -23,37 +19,41 @@ var dataSortedBy = "Reads"
 var termWidth = 80
 var termHeight = 25
 var refreshTime = 1 * time.Second
-
-var hostName, _ = os.Hostname()
-var portNumber = "8081"
+var localHostName, _ = os.Hostname()
+var printVersion = flag.Bool("version", false, "Print version number and exit")
+var cassandraHost = flag.String("host", localHostName, "IP address of the Cassandra host to run against")
+var cassandraMX4jPort = flag.String("port", "8081", "TCP port of MX4J on the Cassandra host")
 
 const (
 	defaultForeGroundColour = termbox.ColorWhite
 	defaultBackGroundColour = termbox.ColorBlack
 	messageForeGroundColour = termbox.ColorMagenta
+	releaseVersion          = 1.5
 )
 
 func init() {
-	// Default to localhost (MX4J needs to be configured to listen to this address in cassandra-env.sh though):
-	flag.StringVar(&cassandraHost, "host", hostName, "IP address of the Cassandra host to run against")
-	flag.StringVar(&cassandraPort, "mx4j-port", portNumber, "TCP port of the Cassandra host")
+	// Set the vars from the command-line args:
+	flag.Parse()
+
+	// Print the version and quit (if we've been asked to):
+	if *printVersion == true {
+		fmt.Printf("CTOP version %v\n", releaseVersion)
+		os.Exit(0)
+	}
 }
 
 // Do all the things:
 func main() {
 
-	// Set the vars from the command-line args:
-	flag.Parse()
-
 	// Check our connection to MX4J:
-	if checkConnection(cassandraHost, cassandraPort) != nil {
-		fmt.Printf("Can't connect to stats-provider (%s)! Trying localhost before bailing...\n", cassandraHost)
-		if checkConnection("localhost", cassandraPort) != nil {
+	if checkConnection(*cassandraHost, *cassandraMX4jPort) != nil {
+		fmt.Printf("Can't connect to stats-provider (%s)! Trying localhost before bailing...\n", *cassandraHost)
+		if checkConnection("localhost", *cassandraMX4jPort) != nil {
 			fmt.Println("Can't even connect to localhost! Check your destination host and port and try again.")
 			os.Exit(2)
 		} else {
 			fmt.Println("Proceeding with localhost..")
-			cassandraHost = "localhost"
+			*cassandraHost = "localhost"
 		}
 	}
 
@@ -76,7 +76,7 @@ func main() {
 	termbox.Flush()
 
 	// Run the metrics-collector:
-	go MetricsCollector(cassandraHost)
+	go MetricsCollector()
 	go handleMetrics()
 	go refreshScreen()
 
