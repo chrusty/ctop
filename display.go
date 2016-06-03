@@ -54,7 +54,7 @@ func showStats() {
 			printfTb(20, y, messageForeGroundColour, termbox.ColorBlack, "  %s", stats[cfStatsKey].ColumnFamily)
 			printfTb(40, y, messageForeGroundColour, termbox.ColorBlack, "  %f", stats[cfStatsKey].ReadRate)
 			printfTb(50, y, messageForeGroundColour, termbox.ColorBlack, "  %f", stats[cfStatsKey].WriteRate)
-			printfTb(61, y, messageForeGroundColour, termbox.ColorBlack, "  %d", stats[cfStatsKey].LiveDiskSpaceUsed)
+			printfTb(61, y, messageForeGroundColour, termbox.ColorBlack, "  %f", stats[cfStatsKey].LiveDiskSpaceUsed)
 			printfTb(76, y, messageForeGroundColour, termbox.ColorBlack, "  %f", stats[cfStatsKey].ReadLatency)
 			printfTb(92, y, messageForeGroundColour, termbox.ColorBlack, "  %f", stats[cfStatsKey].WriteLatency)
 			y++

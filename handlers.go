@@ -48,12 +48,8 @@ func handleMetrics() {
 			// Add a new entry to the map:
 			logToChannel("debug", fmt.Sprintf("Adding new stat (%s)", statName))
 			cfStats = types.CFStats{
-				ReadCount:    0,
-				ReadCountTS:  0,
 				ReadLatency:  0.0,
 				ReadRate:     0.0,
-				WriteCount:   0,
-				WriteCountTS: 0,
 				WriteLatency: 0.0,
 				WriteRate:    0.0,
 				KeySpace:     cfMetric.KeySpace,
@@ -62,43 +58,29 @@ func handleMetrics() {
 		}
 
 		// Figure out which metric we need to update:
-		if cfMetric.MetricName == "ReadCount" {
-			// Total read count:
-			interval := cfMetric.MetricTimeStamp - cfStats.ReadCountTS
-			if cfStats.ReadCountTS == 0 {
-				cfStats.ReadRate = 0.0
-			} else {
-				cfStats.ReadRate = float64(cfMetric.MetricIntValue-cfStats.ReadCount) / float64(interval)
-			}
-			cfStats.ReadCount = cfMetric.MetricIntValue
-			cfStats.ReadCountTS = cfMetric.MetricTimeStamp
+		if cfMetric.MetricName == "ReadLatency/OneMinuteRate" {
+			// Read rate(s):
+			cfStats.ReadRate = cfMetric.MetricFloatValue
 			stats[statName] = cfStats
 
-		} else if cfMetric.MetricName == "WriteCount" {
-			// Total write count:
-			interval := cfMetric.MetricTimeStamp - cfStats.WriteCountTS
-			if cfStats.WriteCountTS == 0 {
-				cfStats.WriteRate = 0.0
-			} else {
-				cfStats.WriteRate = float64(cfMetric.MetricIntValue-cfStats.WriteCount) / float64(interval)
-			}
-			cfStats.WriteCount = cfMetric.MetricIntValue
-			cfStats.WriteCountTS = cfMetric.MetricTimeStamp
+		} else if cfMetric.MetricName == "WriteLatency/OneMinuteRate" {
+			// Write rate(s):
+			cfStats.WriteRate = cfMetric.MetricFloatValue
 			stats[statName] = cfStats
 
-		} else if cfMetric.MetricName == "LiveDiskSpaceUsed" {
+		} else if cfMetric.MetricName == "LiveDiskSpaceUsed/Count" {
 			// Total disk space used(k):
-			cfStats.LiveDiskSpaceUsed = cfMetric.MetricIntValue
+			cfStats.LiveDiskSpaceUsed = cfMetric.MetricFloatValue
 			stats[statName] = cfStats
 
-		} else if cfMetric.MetricName == "RecentReadLatencyMicros" {
+		} else if cfMetric.MetricName == "ReadLatency/Mean" {
 			// ReadLatency (MicroSeconds):
 			if cfMetric.MetricFloatValue > 0 {
 				cfStats.ReadLatency = cfMetric.MetricFloatValue / 1000
 				stats[statName] = cfStats
 			}
 
-		} else if cfMetric.MetricName == "RecentWriteLatencyMicros" {
+		} else if cfMetric.MetricName == "WriteLatency/Mean" {
 			// WriteLatency (MicroSeconds):
 			if cfMetric.MetricFloatValue > 0 {
 				cfStats.WriteLatency = cfMetric.MetricFloatValue / 1000

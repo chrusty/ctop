@@ -1,19 +1,19 @@
 package jolokia
 
 import (
-	"github.com/hailocab/ctop/types"
 	"encoding/json"
 	"fmt"
+	"github.com/hailocab/ctop/types"
 	"io/ioutil"
 	"net/http"
 	// "strconv"
-	// "strings"
+	"strings"
 	"time"
 )
 
 var (
 	// Define a list of metrics to collect (sticking to 5 important ones to save on HTTP calls):
-	cfMetrics = []string{"ReadTotalLatency/Count", "WriteTotalLatency/Count", "LiveDiskSpaceUsed/Count", "ReadLatency/Mean", "WriteLatency/Mean"}
+	cfMetricNames  = []string{"ReadLatency/OneMinuteRate", "WriteLatency/OneMinuteRate", "LiveDiskSpaceUsed/Count", "ReadLatency/Mean", "WriteLatency/Mean"}
 	metricsChannel chan types.CFMetric
 	messageChannel chan types.LogMessage
 	// "ReadTotalLatency"  - The number of reads to a CF (Count)
@@ -34,22 +34,21 @@ func CheckConnection(metricsURL string) error {
 	return err
 }
 
-
 // Retreive metrics from MX4J:
-func getCFMetrics(metricsURL string) (error) {
+func getCFMetrics(metricsURL string) error {
 
 	logToChannel("debug", fmt.Sprintf("Getting metrics from (%s)", metricsURL))
 
 	// Get the CFMetrics:
-	for _, cfMetric := range cfMetrics {
+	for _, cfMetricName := range cfMetricNames {
 
 		// Create a new JolokiaResponse{} to unmarshal the JSON into:
 		jolokiaResponse := types.JolokiaResponse{}
 
-		logToChannel("info", fmt.Sprintf("Getting %s metrics ...", cfMetric))
+		logToChannel("info", fmt.Sprintf("Getting %s metrics ...", cfMetricName))
 
 		// Build the reqest URL:
-		URL := fmt.Sprintf("%s/read/org.apache.cassandra.metrics:type=ColumnFamily,keyspace=*,scope=*,name=%s", metricsURL, cfMetric)
+		URL := fmt.Sprintf("%s/read/org.apache.cassandra.metrics:type=ColumnFamily,keyspace=*,scope=*,name=%s", metricsURL, cfMetricName)
 
 		// Request the data from MX4J:
 		httpResponse, err := http.Get(URL)
@@ -78,36 +77,41 @@ func getCFMetrics(metricsURL string) (error) {
 			// Process all of the returned values:
 			for jolokiaResponseKey, jolokiaResponseValue := range jolokiaResponse.Value {
 
-				// // Split up the comma-delimited metadata string:
-				// columnFamilyMetaData := strings.Split(columnFamilyList.CFList[i].ColmnFamily, ",")
+				var metricFloatValue float64
+				var metricKeySpaceName, metricColumnFamilyName string
+				var columnFamilyMetaDataParts []string
 
-				// // Now split these values up by "=" to get the metadata we're after:
-				// keySpaceName := strings.Split(columnFamilyMetaData[1], "=")
+				// Split up the comma-delimited metadata string:
+				columnFamilyMetaData := strings.Split(jolokiaResponseKey, ":")[1]
 
-				// // Create a new KeySpace{}:
-				// cluster.KeySpaces[keySpaceName[1]] = types.KeySpace{
-				// 	ColumnFamilies: make(map[string]types.ColumnFamily),
-				// }
+				// Split up the metadata into a list of key-value pairs:
+				columnFamilyMetaDataParts = strings.Split(columnFamilyMetaData, ",")
+				metricKeySpaceName = strings.Split(columnFamilyMetaDataParts[0], "=")[1]
+				metricColumnFamilyName = strings.Split(columnFamilyMetaDataParts[2], "=")[1]
 
-				// // Make a new Metric struct:
-				// cfMetric := types.CFMetric{
-				// 	KeySpace:         name,
-				// 	ColumnFamily:     columnFamily,
-				// 	MetricName:       metric.CFLongData.Name,
-				// 	MetricIntValue:   metricIntValue,
-				// 	MetricFloatValue: metricFloatValue,
-				// 	MetricTimeStamp:  time.Now().Unix(),
-				// }
+				// Get the float-value from the JSON response (there should be only one entry in the map):
+				for _, metricFloatValueFromJSON := range jolokiaResponseValue {
+					metricFloatValue = metricFloatValueFromJSON
+				}
 
-				// // Put it in the metrics channel:
-				// select {
-				// case metricsChannel <- cfMetric:
-				// 	logToChannel("debug", fmt.Sprintf("Sent a metric"))
-				// default:
-				// 	logToChannel("info", fmt.Sprintf("Couldn't send metric!"))
-				// }
+				// Make a new Metric struct:
+				cfMetric := types.CFMetric{
+					KeySpace:         metricKeySpaceName,
+					ColumnFamily:     metricColumnFamilyName,
+					MetricName:       cfMetricName,
+					MetricFloatValue: metricFloatValue,
+					MetricTimeStamp:  time.Now().Unix(),
+				}
 
-				logToChannel("debug", fmt.Sprintf("%s => %s", jolokiaResponseKey, jolokiaResponseValue))
+				// Put it in the metrics channel:
+				select {
+				case metricsChannel <- cfMetric:
+					logToChannel("debug", fmt.Sprintf("Sent a metric"))
+				default:
+					logToChannel("info", fmt.Sprintf("Couldn't send metric!"))
+				}
+
+				logToChannel("debug", fmt.Sprintf("%s.%s.%s => %s", metricKeySpaceName, metricColumnFamilyName, cfMetricName, metricFloatValue))
 			}
 		}
 	}
@@ -143,7 +147,7 @@ func logToChannel(severity string, message string) {
 	// Put it in the messages channel:
 	select {
 	case messageChannel <- logMessage:
-		fmt.Printf("[%s] %s\n", severity, message)
+		// fmt.Printf("[%s] %s\n", severity, message)
 
 	default:
 
