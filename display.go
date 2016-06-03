@@ -116,7 +116,7 @@ func drawBorder(width int, height int) {
 	// Title:
 	printTb(1, 0, termbox.ColorBlue|termbox.AttrBold, defaultBackGroundColour, " C-top ")
 	printTb(8, 0, termbox.ColorBlue, defaultBackGroundColour, "(top for Cassandra) connected to ")
-	printTb(41, 0, termbox.ColorBlue|termbox.AttrBold, defaultBackGroundColour, *cassandraHost)
+	printTb(41, 0, termbox.ColorBlue|termbox.AttrBold, defaultBackGroundColour, *metricsURL)
 
 	// Menu:
 	// Positions:                                                      2            15           28            42              58                76                94         105     113
